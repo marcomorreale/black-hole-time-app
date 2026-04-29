@@ -1,0 +1,99 @@
+name: Publish App V10
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - name: Apply larger map window
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const finalTitle = 'Il tempo e il buco nero';
+
+          const cssPath = 'src/styles.css';
+          let css = fs.readFileSync(cssPath, 'utf8');
+          css += `
+
+/* V10: larger map viewport and safer padding for edge stations */
+.map-card {
+  min-height: 620px;
+}
+
+.map-area {
+  min-height: 560px !important;
+  padding: 34px;
+  overflow: visible;
+}
+
+.map-node {
+  z-index: 2;
+}
+
+@media (max-width: 860px) {
+  .map-card {
+    min-height: 560px;
+  }
+
+  .map-area {
+    min-height: 500px !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .map-card {
+    min-height: 520px;
+  }
+
+  .map-area {
+    min-height: 470px !important;
+  }
+}
+`;
+          fs.writeFileSync(cssPath, css);
+
+          const appPath = 'src/App.tsx';
+          let app = fs.readFileSync(appPath, 'utf8');
+          app = app
+            .replace(/Chi torna piu giovane\?/g, finalTitle)
+            .replace(/Chi torna più giovane\?/g, finalTitle)
+            .replace(/Il buco nero e il tempo/g, finalTitle)
+            .replace(/Il tempo e il buco nero/g, finalTitle);
+          fs.writeFileSync(appPath, app);
+
+          const htmlPath = 'index.html';
+          let html = fs.readFileSync(htmlPath, 'utf8');
+          html = html
+            .replace(/Chi torna piu giovane\?/g, finalTitle)
+            .replace(/Chi torna più giovane\?/g, finalTitle)
+            .replace(/Il buco nero e il tempo/g, finalTitle)
+            .replace(/Il tempo e il buco nero/g, finalTitle);
+          fs.writeFileSync(htmlPath, html);
+
+          const manifestPath = 'public/manifest.webmanifest';
+          let manifest = fs.readFileSync(manifestPath, 'utf8');
+          manifest = manifest
+            .replace(/Black Hole Time App/g, finalTitle)
+            .replace(/Il buco nero e il tempo/g, finalTitle)
+            .replace(/Il tempo e il buco nero/g, finalTitle)
+            .replace(/Chi torna piu giovane\?/g, finalTitle)
+            .replace(/Black Hole/g, 'Buco Nero');
+          fs.writeFileSync(manifestPath, manifest);
+          NODE
+      - run: ./node_modules/.bin/vite build --base=/black-hole-time-app/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - uses: actions/deploy-pages@v4
