@@ -1,0 +1,71 @@
+name: Publish App V14
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - name: Apply full width map layout
+        shell: bash
+        run: |
+          cat >> src/styles.css <<'EOF'
+
+/* V14: full width map layout */
+.dashboard-grid {
+  grid-template-columns: 1fr !important;
+}
+
+.dashboard-card,
+.map-card {
+  width: 100%;
+}
+
+.map-card {
+  min-height: auto !important;
+}
+
+.map-area {
+  width: 100%;
+  min-height: 520px !important;
+  overflow: visible;
+}
+
+.map-node {
+  white-space: nowrap;
+}
+
+@media (min-width: 980px) {
+  .map-area {
+    min-height: 560px !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .map-area {
+    min-height: 460px !important;
+  }
+
+  .map-node {
+    min-width: 58px;
+    font-size: 0.72rem;
+    padding: 8px 9px;
+  }
+}
+EOF
+      - run: ./node_modules/.bin/vite build --base=/black-hole-time-app/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - uses: actions/deploy-pages@v4
