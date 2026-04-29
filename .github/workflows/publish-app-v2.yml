@@ -1,0 +1,44 @@
+name: Publish App V2
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - name: Patch black-hole-only route calculation
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const path = 'src/logic/mission.ts';
+          let source = fs.readFileSync(path, 'utf8');
+          source = source.replace(
+            "} from './relativity';\n\nexport type MissionResult",
+            "} from './relativity';\n\nconst DEFAULT_BLACK_HOLE_LAB_DISTANCE_LIGHT_YEARS = 4.25;\n\nexport type MissionResult"
+          );
+          source = source.replace(
+            "const cosmicDistanceLightYears = mainDestination?.distanceFromEarthLightYears ?? 0;\n  const earthElapsedYears = getEarthYearsForRoundTrip(cosmicDistanceLightYears, beta);",
+            "const hasBlackHoleOnlyLab = Boolean(closestBlackHoleZone && !mainDestination);\n  const oneWayLightYears = mainDestination?.distanceFromEarthLightYears ?? (hasBlackHoleOnlyLab ? DEFAULT_BLACK_HOLE_LAB_DISTANCE_LIGHT_YEARS : 0);\n  const earthElapsedYears = getEarthYearsForRoundTrip(oneWayLightYears, beta);"
+          );
+          source = source.replace(
+            "cosmicDistanceLightYears: cosmicDistanceLightYears * 2,",
+            "cosmicDistanceLightYears: oneWayLightYears * 2,"
+          );
+          fs.writeFileSync(path, source);
+          NODE
+      - run: ./node_modules/.bin/vite build --base=/black-hole-time-app/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - uses: actions/deploy-pages@v4
