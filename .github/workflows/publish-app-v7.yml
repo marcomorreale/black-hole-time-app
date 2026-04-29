@@ -1,0 +1,110 @@
+name: Publish App V7
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - name: Apply progressive route distance fix
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const finalTitle = 'Il tempo e il buco nero';
+
+          const stationsPath = 'src/data/stations.ts';
+          let stations = fs.readFileSync(stationsPath, 'utf8');
+          function replaceBlock(id, replacements) {
+            const marker = `id: '${id}',`;
+            const start = stations.indexOf(marker);
+            if (start < 0) return;
+            const blockStart = stations.lastIndexOf('{', start);
+            const blockEnd = stations.indexOf('\n  }', start) + 4;
+            let block = stations.slice(blockStart, blockEnd);
+            for (const [key, value] of Object.entries(replacements)) {
+              const re = new RegExp(`${key}: [^,\\n]+,?`);
+              if (re.test(block)) block = block.replace(re, `${key}: ${value},`);
+              else block = block.replace(/y: [^,\n]+,/, (match) => `${match}\n    ${key}: ${value},`);
+            }
+            stations = stations.slice(0, blockStart) + block + stations.slice(blockEnd);
+          }
+          replaceBlock('earth', { x: '0', y: '0' });
+          replaceBlock('moon', { x: '1', y: '2' });
+          replaceBlock('pluto', { x: '3.2', y: '0' });
+          replaceBlock('proxima', { x: '6.2', y: '1' });
+          replaceBlock('sagittarius-a', { x: '10', y: '3' });
+          replaceBlock('einstein-beacon', { x: '6.6', y: '0.5', distanceFromEarthLightYears: '4.0' });
+          replaceBlock('accretion-disk', { x: '7.0', y: '0', distanceFromEarthLightYears: '4.2' });
+          replaceBlock('horizon-margin', { x: '7.35', y: '-0.6', distanceFromEarthLightYears: '4.25' });
+          replaceBlock('near-horizon', { x: '7.7', y: '-1.2', distanceFromEarthLightYears: '4.3' });
+          replaceBlock('teaching-black-hole', { x: '8.1', y: '-1.8' });
+          fs.writeFileSync(stationsPath, stations);
+
+          const missionPath = 'src/logic/mission.ts';
+          let mission = fs.readFileSync(missionPath, 'utf8');
+          mission = mission.replace(
+            /const realDestinations = route\.filter\([\s\S]*?\n  \);\n  const mainDestination/,
+            "const realDestinations = route.filter(\n    (station) =>\n      (station.kind === 'real-destination' ||\n        station.kind === 'black-hole-zone' ||\n        station.kind === 'info') &&\n      station.distanceFromEarthLightYears\n  );\n  const mainDestination"
+          );
+          mission = mission.replace(
+            "const earthElapsedYears = getEarthYearsForRoundTrip(cosmicDistanceLightYears, beta);",
+            "const isRoundTrip = route.length >= 3 && route[0]?.id === 'earth' && currentStation?.id === 'earth';\n  const displayedCosmicDistanceLightYears = cosmicDistanceLightYears * (isRoundTrip ? 2 : 1);\n  const earthElapsedYears = displayedCosmicDistanceLightYears / beta;"
+          );
+          mission = mission.replace(
+            "cosmicDistanceLightYears: cosmicDistanceLightYears * 2,",
+            "cosmicDistanceLightYears: displayedCosmicDistanceLightYears,"
+          );
+          fs.writeFileSync(missionPath, mission);
+
+          const appPath = 'src/App.tsx';
+          let app = fs.readFileSync(appPath, 'utf8');
+          app = app
+            .replace(/Chi torna piu giovane\?/g, finalTitle)
+            .replace(/Chi torna più giovane\?/g, finalTitle)
+            .replace(/Il buco nero e il tempo/g, finalTitle)
+            .replace(/Il tempo e il buco nero/g, finalTitle);
+          app = app.replace(
+            "Mappa in scala logaritmica semplificata: le posizioni rispettano meglio gli ordini di grandezza reali. Cliccare una stazione equivale a scansionare il suo QR.",
+            "Mappa in scala logaritmica semplificata. La distanza cosmica mostra l'andata durante il viaggio e diventa andata + ritorno quando rientri sulla Terra. Cliccare una stazione equivale a scansionare il suo QR."
+          );
+          app = app.replace(
+            "Per questa prima versione, cliccare una stazione equivale a scansionare il suo QR.",
+            "Mappa in scala logaritmica semplificata. La distanza cosmica mostra l'andata durante il viaggio e diventa andata + ritorno quando rientri sulla Terra. Cliccare una stazione equivale a scansionare il suo QR."
+          );
+          fs.writeFileSync(appPath, app);
+
+          const htmlPath = 'index.html';
+          let html = fs.readFileSync(htmlPath, 'utf8');
+          html = html
+            .replace(/Chi torna piu giovane\?/g, finalTitle)
+            .replace(/Chi torna più giovane\?/g, finalTitle)
+            .replace(/Il buco nero e il tempo/g, finalTitle)
+            .replace(/Il tempo e il buco nero/g, finalTitle);
+          fs.writeFileSync(htmlPath, html);
+
+          const manifestPath = 'public/manifest.webmanifest';
+          let manifest = fs.readFileSync(manifestPath, 'utf8');
+          manifest = manifest
+            .replace(/Black Hole Time App/g, finalTitle)
+            .replace(/Il buco nero e il tempo/g, finalTitle)
+            .replace(/Il tempo e il buco nero/g, finalTitle)
+            .replace(/Chi torna piu giovane\?/g, finalTitle)
+            .replace(/Black Hole/g, 'Buco Nero');
+          fs.writeFileSync(manifestPath, manifest);
+          NODE
+      - run: ./node_modules/.bin/vite build --base=/black-hole-time-app/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - uses: actions/deploy-pages@v4
