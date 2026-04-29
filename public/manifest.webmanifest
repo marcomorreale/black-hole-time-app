@@ -1,0 +1,17 @@
+{
+  "name": "Black Hole Time App",
+  "short_name": "Black Hole",
+  "description": "Educational dashboard about time near a black hole.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#050816",
+  "theme_color": "#050816",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
