@@ -1,27 +1,34 @@
 import { RotateCcw, Rocket, ScanLine, Sparkles } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { stations } from './data/stations';
-import { calculateMission, getSuggestedRoutes } from './logic/mission';
+import { calculateMission, getSuggestedRoutes, RouteVisit, STAY_YEARS_PER_REAL_SECOND } from './logic/mission';
 import { FIXED_BETA, formatDistance, formatYears } from './logic/relativity';
 
 const DEFAULT_AGE = 13;
 
 export default function App() {
   const [initialAge, setInitialAge] = useState(DEFAULT_AGE);
-  const [routeIds, setRouteIds] = useState<string[]>([]);
+  const createInitialRoute = (): RouteVisit[] => [{ stationId: 'earth', arrivedAtMs: Date.now() }];
+  const [routeVisits, setRouteVisits] = useState<RouteVisit[]>(createInitialRoute);
+  const [nowMs, setNowMs] = useState(Date.now());
 
-  const result = useMemo(() => calculateMission(routeIds), [routeIds]);
+  useEffect(() => {
+    const timer = window.setInterval(() => setNowMs(Date.now()), 250);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const result = useMemo(() => calculateMission(routeVisits, undefined, nowMs), [routeVisits, nowMs]);
   const suggestedRoutes = useMemo(() => getSuggestedRoutes(), []);
 
   const addStation = (stationId: string) => {
-    setRouteIds((current) => [...current, stationId]);
+    setRouteVisits((current) => [...current, { stationId, arrivedAtMs: Date.now() }]);
   };
 
   const applyRoute = (route: string[]) => {
-    setRouteIds(route);
+    setRouteVisits(route.map((stationId, index) => ({ stationId, arrivedAtMs: Date.now() + index * 1000 }))); 
   };
 
-  const reset = () => setRouteIds([]);
+  const reset = () => setRouteVisits(createInitialRoute());
 
   const earthFinalAge = initialAge + result.earthElapsedYears;
   const travelerFinalAge = initialAge + result.travelerElapsedYears;
@@ -104,6 +111,8 @@ export default function App() {
             <Metric label="Distanza sulla mappa" value={`${result.physicalDistanceMeters.toLocaleString('it-IT', { maximumFractionDigits: 1 })} m`} />
             <Metric label="Velocita media" value="0,5c" />
             <Metric label="Fattore totale" value={`${result.totalFactor.toLocaleString('it-IT', { maximumFractionDigits: 3 })}x`} />
+            <Metric label="Scala permanenza" value={`1 sec = ${STAY_YEARS_PER_REAL_SECOND} anno Terra`} />
+            <Metric label="Permanenza attuale" value={`${result.activeStayRealSeconds.toLocaleString('it-IT', { maximumFractionDigits: 1 })} sec = ${formatYears(result.activeStayEarthYears)}`} />
             <Metric label="Tempo sulla Terra" value={formatYears(result.earthElapsedYears)} />
             <Metric label="Tempo per te" value={formatYears(result.travelerElapsedYears)} />
           </div>
@@ -115,6 +124,11 @@ export default function App() {
             <h2>Mappa e stazioni</h2>
           </div>
           <div className="map-area" aria-label="Mappa 2D delle stazioni">
+            <div className="map-time-clock">
+              <span>Sosta nella stazione corrente</span>
+              <strong>{result.activeStayRealSeconds.toLocaleString('it-IT', { maximumFractionDigits: 1 })} sec</strong>
+              <small>{result.currentStation?.id === 'earth' ? 'cronometro fermo' : `${formatYears(result.activeStayEarthYears)} simulati`}</small>
+            </div>
             <div className="black-hole-field-center" aria-hidden="true">
               <div className="black-hole-sector field-weak"><span>Campo debole</span></div>
               <div className="black-hole-sector field-strong"><span>Campo forte</span></div>
@@ -125,7 +139,7 @@ export default function App() {
               <button
                 key={station.id}
                 type="button"
-                className={`map-node ${station.kind} ${routeIds.includes(station.id) ? 'visited' : ''}`}
+                className={`map-node ${station.kind} ${routeVisits.some((visit) => visit.stationId === station.id) ? 'visited' : ''}`}
                 style={{ left: `${7 + station.x * 7.8}%`, top: `${8 + (3 - station.y) * 11.5}%`, width: `${station.massLogSize}px`, height: `${station.massLogSize}px` }}
                 onClick={() => addStation(station.id)}
                 title={station.description}
@@ -135,19 +149,31 @@ export default function App() {
               </button>
             ))}
           </div>
-          <p className="hint">Mappa in scala logaritmica semplificata. Le lettere A, B, C, D sono stazioni di passaggio dentro i settori del campo gravitazionale del buco nero. Cliccare una stazione equivale a scansionare il suo QR.</p>
+          <p className="hint">Mappa in scala logaritmica semplificata. La Terra e gia impostata come punto di partenza. Il cronometro parte quando selezioni la prima destinazione; il tempo tra due click misura la permanenza nella stazione precedente: 1 secondo reale vale 1 anno sulla Terra.</p>
         </div>
       </section>
 
       <section className="panel route-panel">
         <h2>Percorso scansionato</h2>
-        {result.route.length === 0 ? (
-          <p className="muted">Scansiona Terra per partire, poi visita una o piu stazioni e torna alla Terra.</p>
-        ) : (
+        {result.route.length === 0 ? <p className="muted">Parti gia dalla Terra: visita una o piu stazioni e torna alla Terra.</p> : (
           <div className="route-chain">
-            {result.route.map((station, index) => (
-              <span key={`${station.id}-${index}`}>{station.shortName}</span>
-            ))}
+            {result.route.map((station, index) => {
+              const visit = result.visits[index];
+              const nextVisit = result.visits[index + 1];
+              const isCurrentStation = index === result.route.length - 1;
+              const completedStaySeconds = visit && nextVisit ? Math.max(0, (nextVisit.arrivedAtMs - visit.arrivedAtMs) / 1000) : 0;
+              const shownStaySeconds = station.id === 'earth' ? 0 : isCurrentStation ? result.activeStayRealSeconds : completedStaySeconds;
+              const shownStayYears = shownStaySeconds;
+              return (
+                <span key={station.id + "-" + index} className="route-stop-pill">
+                  <strong>{station.shortName}</strong>
+                  <small>
+                    sosta: {shownStaySeconds.toLocaleString("it-IT", { maximumFractionDigits: 1 })}s
+                    {shownStaySeconds > 0 && <> / {formatYears(shownStayYears)}</>}
+                  </small>
+                </span>
+              );
+            })}
           </div>
         )}
       </section>
@@ -170,6 +196,32 @@ export default function App() {
             </div>
           </div>
 
+          <div className="result-detail-grid">
+            <div>
+              <span>Tempo viaggio sulla Terra</span>
+              <strong>{formatYears(result.travelEarthYears)}</strong>
+            </div>
+            <div>
+              <span>Tempo viaggio per il viaggiatore</span>
+              <strong>{formatYears(result.travelTravelerYears)}</strong>
+            </div>
+            <div>
+              <span>Tempo soste sulla Terra</span>
+              <strong>{formatYears(result.stayEarthYears)}</strong>
+            </div>
+            <div>
+              <span>Tempo soste per il viaggiatore</span>
+              <strong>{formatYears(result.stayTravelerYears)}</strong>
+            </div>
+            <div>
+              <span>Distanza cosmica percorsa</span>
+              <strong>{formatDistance(result.cosmicDistanceLightYears)}</strong>
+            </div>
+            <div>
+              <span>Conseguenza finale</span>
+              <strong>{formatYears(result.ageDifferenceYears)} di differenza</strong>
+            </div>
+          </div>
           <div className="explanation-box">
             <h3>Cosa ha causato la differenza?</h3>
             <p>

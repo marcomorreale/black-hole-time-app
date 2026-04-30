@@ -595,3 +595,68 @@ input {
   .black-hole-sector { font-size: 0.64rem; }
   .map-node .planet-label { font-size: 0.66rem; padding: 2px 6px; }
 }
+
+/* STAY_TIME_MODE_UI */
+.route-chain span { display: inline-flex; align-items: center; gap: 6px; }
+.route-chain small { color: #facc15; font-size: 0.72rem; font-weight: 800; }
+
+/* MAP_TIME_CLOCK_UI */
+.map-time-clock {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  z-index: 8;
+  display: grid;
+  gap: 3px;
+  min-width: 190px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: rgba(2, 6, 23, 0.84);
+  border: 1px solid rgba(125, 211, 252, 0.26);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
+}
+.map-time-clock span { color: #a8b4c7; font-size: 0.76rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
+.map-time-clock strong { color: #e0f2fe; font-size: 1.15rem; }
+.map-time-clock small { color: #facc15; font-weight: 800; }
+@media (max-width: 520px) {
+  .map-time-clock { right: 10px; top: 10px; min-width: 150px; padding: 10px 11px; }
+  .map-time-clock strong { font-size: 0.95rem; }
+  .map-time-clock span { font-size: 0.64rem; }
+}
+
+/* CURRENT_STAY_CLOCK_REFINEMENT */
+.map-time-clock span { color: #a8b4c7; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
+.map-time-clock strong { color: #e0f2fe; font-size: 1.25rem; }
+.map-time-clock small { color: #facc15; font-weight: 800; }
+
+/* ROUTE_STAY_AND_RESULT_DETAILS */
+.route-stop-pill {
+  display: inline-grid !important;
+  gap: 2px !important;
+  align-items: center;
+}
+.route-stop-pill strong { line-height: 1; }
+.route-stop-pill small {
+  color: #facc15;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+.result-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+.result-detail-grid > div {
+  border-radius: 20px;
+  padding: 16px;
+  background: rgba(2, 6, 23, 0.48);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  display: grid;
+  gap: 7px;
+}
+.result-detail-grid span { color: #a8b4c7; }
+.result-detail-grid strong { font-size: 1.06rem; }
+@media (max-width: 860px) {
+  .result-detail-grid { grid-template-columns: 1fr; }
+}

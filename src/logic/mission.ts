@@ -7,9 +7,17 @@ import {
   getInfluenceLabel
 } from './relativity';
 
+export const STAY_YEARS_PER_REAL_SECOND = 1;
+
+export type RouteVisit = {
+  stationId: string;
+  arrivedAtMs: number;
+};
+
 export type MissionResult = {
   isComplete: boolean;
   route: Station[];
+  visits: RouteVisit[];
   currentStation?: Station;
   mainDestination?: Station;
   closestBlackHoleZone?: Station;
@@ -21,17 +29,24 @@ export type MissionResult = {
   totalFactor: number;
   blackHoleInfluence: number;
   blackHoleInfluenceLabel: string;
+  travelEarthYears: number;
+  travelTravelerYears: number;
+  stayEarthYears: number;
+  stayTravelerYears: number;
   earthElapsedYears: number;
   travelerElapsedYears: number;
   ageDifferenceYears: number;
   baselineTravelerElapsedYears: number;
   baselineAgeDifferenceYears: number;
   blackHoleExtraDifferenceYears: number;
+  activeStayRealSeconds: number;
+  activeStayEarthYears: number;
 };
 
-export function calculateMission(routeIds: string[], beta = FIXED_BETA): MissionResult {
-  const route = routeIds
-    .map((id) => stationById.get(id))
+export function calculateMission(input: string[] | RouteVisit[], beta = FIXED_BETA, nowMs = Date.now()): MissionResult {
+  const visits = normalizeVisits(input);
+  const route = visits
+    .map((visit) => stationById.get(visit.stationId))
     .filter((station): station is Station => Boolean(station));
 
   const currentStation = route.at(-1);
@@ -43,25 +58,29 @@ export function calculateMission(routeIds: string[], beta = FIXED_BETA): Mission
     return (station.distanceFromEarthLightYears ?? 0) > (best.distanceFromEarthLightYears ?? 0) ? station : best;
   }, undefined);
 
-  const blackHoleZones = route.filter(
-    (station) => station.kind === 'black-hole-zone' && station.schwarzschildDistance
-  );
+  const blackHoleZones = route.filter((station) => station.kind === 'black-hole-zone' && station.schwarzschildDistance);
   const closestBlackHoleZone = blackHoleZones.reduce<Station | undefined>((closest, station) => {
     if (!closest) return station;
-    return (station.schwarzschildDistance ?? Infinity) < (closest.schwarzschildDistance ?? Infinity)
-      ? station
-      : closest;
+    return (station.schwarzschildDistance ?? Infinity) < (closest.schwarzschildDistance ?? Infinity) ? station : closest;
   }, undefined);
 
   const cosmicDistanceLightYears = getCumulativeCosmicDistanceLightYears(route);
-  const earthElapsedYears = cosmicDistanceLightYears / beta;
+  const travelEarthYears = cosmicDistanceLightYears / beta;
   const velocityFactor = Math.sqrt(1 - beta * beta);
   const gravityFactor = getGravityFactor(closestBlackHoleZone?.schwarzschildDistance);
   const totalFactor = velocityFactor * gravityFactor;
-  const travelerElapsedYears = earthElapsedYears * totalFactor;
-  const ageDifferenceYears = earthElapsedYears - travelerElapsedYears;
+  const travelTravelerYears = travelEarthYears * totalFactor;
 
-  const baselineTravelerElapsedYears = earthElapsedYears * velocityFactor;
+  const staySegments = getStaySegments(visits);
+  const stayEarthYears = staySegments.reduce((sum, segment) => sum + segment.earthYears, 0);
+  const stayTravelerYears = staySegments.reduce((sum, segment) => sum + segment.travelerYears, 0);
+  const activeStayRealSeconds = getActiveStayRealSeconds(visits, nowMs);
+  const activeStayEarthYears = activeStayRealSeconds * STAY_YEARS_PER_REAL_SECOND;
+
+  const earthElapsedYears = travelEarthYears + stayEarthYears;
+  const travelerElapsedYears = travelTravelerYears + stayTravelerYears;
+  const ageDifferenceYears = earthElapsedYears - travelerElapsedYears;
+  const baselineTravelerElapsedYears = travelEarthYears * velocityFactor + stayEarthYears;
   const baselineAgeDifferenceYears = earthElapsedYears - baselineTravelerElapsedYears;
   const blackHoleExtraDifferenceYears = Math.max(0, ageDifferenceYears - baselineAgeDifferenceYears);
   const blackHoleInfluence = getBlackHoleInfluence(gravityFactor);
@@ -69,6 +88,7 @@ export function calculateMission(routeIds: string[], beta = FIXED_BETA): Mission
   return {
     isComplete,
     route,
+    visits,
     currentStation,
     mainDestination,
     closestBlackHoleZone,
@@ -80,13 +100,27 @@ export function calculateMission(routeIds: string[], beta = FIXED_BETA): Mission
     totalFactor,
     blackHoleInfluence,
     blackHoleInfluenceLabel: getInfluenceLabel(blackHoleInfluence),
+    travelEarthYears,
+    travelTravelerYears,
+    stayEarthYears,
+    stayTravelerYears,
     earthElapsedYears,
     travelerElapsedYears,
     ageDifferenceYears,
     baselineTravelerElapsedYears,
     baselineAgeDifferenceYears,
-    blackHoleExtraDifferenceYears
+    blackHoleExtraDifferenceYears,
+    activeStayRealSeconds,
+    activeStayEarthYears
   };
+}
+
+function normalizeVisits(input: string[] | RouteVisit[]): RouteVisit[] {
+  if (input.length === 0) return [];
+  if (typeof input[0] === 'string') {
+    return (input as string[]).map((stationId, index) => ({ stationId, arrivedAtMs: index }));
+  }
+  return input as RouteVisit[];
 }
 
 function getStationEarthDistance(station: Station): number {
@@ -103,6 +137,29 @@ function getCumulativeCosmicDistanceLightYears(route: Station[]): number {
   return total;
 }
 
+function getStaySegments(visits: RouteVisit[]): Array<{ earthYears: number; travelerYears: number }> {
+  const segments: Array<{ earthYears: number; travelerYears: number }> = [];
+  for (let index = 0; index < visits.length - 1; index += 1) {
+    const station = stationById.get(visits[index].stationId);
+    if (!station) continue;
+    if (station.id === 'earth') continue;
+    const realSeconds = Math.max(0, (visits[index + 1].arrivedAtMs - visits[index].arrivedAtMs) / 1000);
+    const earthYears = realSeconds * STAY_YEARS_PER_REAL_SECOND;
+    const gravityFactor = getGravityFactor(station.schwarzschildDistance);
+    const travelerYears = earthYears * gravityFactor;
+    segments.push({ earthYears, travelerYears });
+  }
+  return segments;
+}
+
+function getActiveStayRealSeconds(visits: RouteVisit[], nowMs: number): number {
+  const lastVisit = visits.at(-1);
+  if (!lastVisit) return 0;
+  if (lastVisit.stationId === 'earth') return 0;
+
+  return Math.max(0, (nowMs - lastVisit.arrivedAtMs) / 1000);
+}
+
 export function getPhysicalDistanceMeters(route: Station[]): number {
   let total = 0;
   for (let index = 1; index < route.length; index += 1) {
@@ -115,35 +172,11 @@ export function getPhysicalDistanceMeters(route: Station[]): number {
 
 export function getSuggestedRoutes(): Array<{ title: string; route: string[]; note: string }> {
   return [
-    {
-      title: 'Controllo: viaggio interstellare senza buco nero',
-      route: ['earth', 'proxima', 'earth'],
-      note: 'Serve per misurare la differenza causata dalla sola velocita a 0,5c.'
-    },
-    {
-      title: 'Campo debole',
-      route: ['earth', 'station-a', 'earth'],
-      note: 'Passaggio nella Stazione A: campo debole, 10 Rs.'
-    },
-    {
-      title: 'Campo forte',
-      route: ['earth', 'station-b', 'earth'],
-      note: 'Passaggio nella Stazione B: campo forte, 2 Rs.'
-    },
-    {
-      title: 'Zona critica',
-      route: ['earth', 'station-c', 'earth'],
-      note: 'Passaggio nella Stazione C: zona critica, 1,5 Rs.'
-    },
-    {
-      title: 'Quasi orizzonte',
-      route: ['earth', 'station-d', 'earth'],
-      note: 'Passaggio nella Stazione D: effetto estremo, 1,2 Rs.'
-    },
-    {
-      title: 'Viaggio interstellare + buco nero',
-      route: ['earth', 'proxima', 'station-c', 'earth'],
-      note: 'Confronta Proxima con un passaggio nella zona critica del buco nero.'
-    }
+    { title: 'Controllo: viaggio interstellare senza buco nero', route: ['earth', 'proxima', 'earth'], note: 'Serve per misurare la differenza causata dalla sola velocita a 0,5c.' },
+    { title: 'Campo debole', route: ['earth', 'station-a', 'earth'], note: 'Passaggio nella Stazione A: campo debole, 10 Rs.' },
+    { title: 'Campo forte', route: ['earth', 'station-b', 'earth'], note: 'Passaggio nella Stazione B: campo forte, 2 Rs.' },
+    { title: 'Zona critica', route: ['earth', 'station-c', 'earth'], note: 'Passaggio nella Stazione C: zona critica, 1,5 Rs.' },
+    { title: 'Quasi orizzonte', route: ['earth', 'station-d', 'earth'], note: 'Passaggio nella Stazione D: effetto estremo, 1,2 Rs.' },
+    { title: 'Viaggio interstellare + buco nero', route: ['earth', 'proxima', 'station-c', 'earth'], note: 'Confronta Proxima con un passaggio nella zona critica del buco nero.' }
   ];
 }
