@@ -420,3 +420,16 @@ input {
     min-height: 330px;
   }
 }
+
+
+/* SOURCE_FIX_FULL_WIDTH_MAP */
+.dashboard-grid { grid-template-columns: 1fr !important; }
+.dashboard-card, .map-card { width: 100%; }
+.map-area { width: 100%; min-height: 560px !important; overflow: hidden; }
+.map-node { white-space: nowrap; }
+.station-title-row { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.station-title-row em { color: #7dd3fc; font-style: normal; font-size: 0.95rem; font-weight: 700; }
+@media (max-width: 520px) {
+  .map-area { min-height: 460px !important; }
+  .map-node { min-width: 58px; font-size: 0.72rem; padding: 8px 9px; }
+}

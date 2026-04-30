@@ -31,14 +31,14 @@ export const stations: Station[] = [
     x: 1,
     y: 2,
     distanceFromEarthLightYears: 0.0000000406,
-    description: 'Il nostro satellite naturale. Su questa scala l\'effetto relativistico e quasi nullo.'
+    description: 'Il nostro satellite naturale. Su questa scala l effetto relativistico e quasi nullo.'
   },
   {
     id: 'pluto',
     name: 'Plutone',
     shortName: 'Plutone',
     kind: 'real-destination',
-    x: 2,
+    x: 3.2,
     y: 0,
     distanceFromEarthLightYears: 0.000623,
     description: 'Destinazione ai confini del Sistema Solare.'
@@ -48,7 +48,7 @@ export const stations: Station[] = [
     name: 'Proxima Centauri',
     shortName: 'Proxima',
     kind: 'real-destination',
-    x: 5,
+    x: 6.2,
     y: 1,
     distanceFromEarthLightYears: 4.25,
     description: 'La stella piu vicina al Sole. E la destinazione principale del viaggio interstellare.'
@@ -58,7 +58,7 @@ export const stations: Station[] = [
     name: 'Sagittarius A*',
     shortName: 'Sgr A*',
     kind: 'info',
-    x: 6,
+    x: 10,
     y: 3,
     distanceFromEarthLightYears: 26000,
     description: 'Buco nero supermassiccio reale al centro della Via Lattea. Troppo lontano per la missione.'
@@ -68,8 +68,9 @@ export const stations: Station[] = [
     name: 'Faro Einstein',
     shortName: 'Faro',
     kind: 'black-hole-zone',
-    x: 7,
-    y: 1,
+    x: 6.6,
+    y: 0.5,
+    distanceFromEarthLightYears: 4.0,
     schwarzschildDistance: 10,
     description: 'Ingresso nella regione del buco nero didattico. Campo gravitazionale debole.'
   },
@@ -78,28 +79,31 @@ export const stations: Station[] = [
     name: 'Disco di accrescimento',
     shortName: 'Disco',
     kind: 'black-hole-zone',
-    x: 8,
+    x: 7.0,
     y: 0,
+    distanceFromEarthLightYears: 4.2,
     schwarzschildDistance: 2,
     description: 'Zona di campo gravitazionale forte.'
   },
   {
     id: 'horizon-margin',
-    name: 'Margine dell\'orizzonte',
+    name: 'Margine dell orizzonte',
     shortName: 'Margine',
     kind: 'black-hole-zone',
-    x: 9,
-    y: -1,
+    x: 7.35,
+    y: -0.6,
+    distanceFromEarthLightYears: 4.25,
     schwarzschildDistance: 1.5,
-    description: 'Zona critica vicino all\'orizzonte degli eventi.'
+    description: 'Zona critica vicino all orizzonte degli eventi.'
   },
   {
     id: 'near-horizon',
     name: 'Quasi orizzonte',
     shortName: 'Quasi orizzonte',
     kind: 'black-hole-zone',
-    x: 9.5,
-    y: -1.5,
+    x: 7.7,
+    y: -1.2,
+    distanceFromEarthLightYears: 4.3,
     schwarzschildDistance: 1.2,
     description: 'Effetto gravitazionale estremo. Da usare nella fase laboratorio.'
   },
@@ -108,10 +112,11 @@ export const stations: Station[] = [
     name: 'Buco nero didattico',
     shortName: 'Buco nero',
     kind: 'black-hole',
-    x: 10,
-    y: -2,
+    x: 8.1,
+    y: -1.8,
+    distanceFromEarthLightYears: 4.31,
     schwarzschildDistance: 1,
-    description: 'Oggetto simulato usato per visualizzare l\'effetto estremo della gravita sul tempo.'
+    description: 'Oggetto simulato usato per visualizzare l effetto estremo della gravita sul tempo.'
   }
 ];
 

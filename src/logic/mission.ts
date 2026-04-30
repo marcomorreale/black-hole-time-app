@@ -3,7 +3,6 @@ import {
   FIXED_BETA,
   VELOCITY_FACTOR,
   getBlackHoleInfluence,
-  getEarthYearsForRoundTrip,
   getGravityFactor,
   getInfluenceLabel
 } from './relativity';
@@ -38,22 +37,24 @@ export function calculateMission(routeIds: string[], beta = FIXED_BETA): Mission
   const currentStation = route.at(-1);
   const isComplete = route.length >= 3 && route[0]?.id === 'earth' && currentStation?.id === 'earth';
 
-  const realDestinations = route.filter(
-    (station) => station.kind === 'real-destination' && station.distanceFromEarthLightYears
-  );
-  const mainDestination = realDestinations.reduce<Station | undefined>((best, station) => {
+  const mainDestination = route.reduce<Station | undefined>((best, station) => {
+    if (station.distanceFromEarthLightYears === undefined) return best;
     if (!best) return station;
     return (station.distanceFromEarthLightYears ?? 0) > (best.distanceFromEarthLightYears ?? 0) ? station : best;
   }, undefined);
 
-  const blackHoleZones = route.filter((station) => station.kind === 'black-hole-zone' && station.schwarzschildDistance);
+  const blackHoleZones = route.filter(
+    (station) => station.kind === 'black-hole-zone' && station.schwarzschildDistance
+  );
   const closestBlackHoleZone = blackHoleZones.reduce<Station | undefined>((closest, station) => {
     if (!closest) return station;
-    return (station.schwarzschildDistance ?? Infinity) < (closest.schwarzschildDistance ?? Infinity) ? station : closest;
+    return (station.schwarzschildDistance ?? Infinity) < (closest.schwarzschildDistance ?? Infinity)
+      ? station
+      : closest;
   }, undefined);
 
-  const cosmicDistanceLightYears = mainDestination?.distanceFromEarthLightYears ?? 0;
-  const earthElapsedYears = getEarthYearsForRoundTrip(cosmicDistanceLightYears, beta);
+  const cosmicDistanceLightYears = getCumulativeCosmicDistanceLightYears(route);
+  const earthElapsedYears = cosmicDistanceLightYears / beta;
   const velocityFactor = Math.sqrt(1 - beta * beta);
   const gravityFactor = getGravityFactor(closestBlackHoleZone?.schwarzschildDistance);
   const totalFactor = velocityFactor * gravityFactor;
@@ -63,7 +64,6 @@ export function calculateMission(routeIds: string[], beta = FIXED_BETA): Mission
   const baselineTravelerElapsedYears = earthElapsedYears * velocityFactor;
   const baselineAgeDifferenceYears = earthElapsedYears - baselineTravelerElapsedYears;
   const blackHoleExtraDifferenceYears = Math.max(0, ageDifferenceYears - baselineAgeDifferenceYears);
-
   const blackHoleInfluence = getBlackHoleInfluence(gravityFactor);
 
   return {
@@ -72,7 +72,7 @@ export function calculateMission(routeIds: string[], beta = FIXED_BETA): Mission
     currentStation,
     mainDestination,
     closestBlackHoleZone,
-    cosmicDistanceLightYears: cosmicDistanceLightYears * 2,
+    cosmicDistanceLightYears,
     physicalDistanceMeters: getPhysicalDistanceMeters(route),
     beta,
     velocityFactor: beta === FIXED_BETA ? VELOCITY_FACTOR : velocityFactor,
@@ -87,6 +87,20 @@ export function calculateMission(routeIds: string[], beta = FIXED_BETA): Mission
     baselineAgeDifferenceYears,
     blackHoleExtraDifferenceYears
   };
+}
+
+function getStationEarthDistance(station: Station): number {
+  return station.distanceFromEarthLightYears ?? 0;
+}
+
+function getCumulativeCosmicDistanceLightYears(route: Station[]): number {
+  let total = 0;
+  for (let index = 1; index < route.length; index += 1) {
+    const previous = getStationEarthDistance(route[index - 1]);
+    const current = getStationEarthDistance(route[index]);
+    total += Math.abs(current - previous);
+  }
+  return total;
 }
 
 export function getPhysicalDistanceMeters(route: Station[]): number {
@@ -107,9 +121,9 @@ export function getSuggestedRoutes(): Array<{ title: string; route: string[]; no
       note: 'Serve per misurare la differenza causata dalla sola velocita a 0,5c.'
     },
     {
-      title: 'Buco nero debole: ingresso nel campo',
-      route: ['earth', 'proxima', 'einstein-beacon', 'earth'],
-      note: 'Mostra un primo effetto gravitazionale del buco nero didattico.'
+      title: 'Laboratorio buco nero: margine diretto',
+      route: ['earth', 'horizon-margin', 'earth'],
+      note: 'Mostra subito l effetto del buco nero didattico.'
     },
     {
       title: 'Buco nero forte: disco di accrescimento',
@@ -117,9 +131,9 @@ export function getSuggestedRoutes(): Array<{ title: string; route: string[]; no
       note: 'Evidenzia un effetto forte ma ancora gestibile.'
     },
     {
-      title: 'Zona critica: margine dell\'orizzonte',
+      title: 'Zona critica: margine dell orizzonte',
       route: ['earth', 'proxima', 'horizon-margin', 'earth'],
-      note: 'La demo principale per mostrare chiaramente l\'impatto del buco nero.'
+      note: 'La demo principale per mostrare chiaramente l impatto del buco nero.'
     }
   ];
 }

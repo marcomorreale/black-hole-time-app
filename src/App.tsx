@@ -26,13 +26,14 @@ export default function App() {
   const earthFinalAge = initialAge + result.earthElapsedYears;
   const travelerFinalAge = initialAge + result.travelerElapsedYears;
   const influencePercent = Math.round(result.blackHoleInfluence * 100);
+  const currentStationDistance = result.currentStation?.distanceFromEarthLightYears;
 
   return (
     <main className="app-shell">
       <section className="hero-card">
         <div>
           <p className="eyebrow">Cruscotto didattico</p>
-          <h1>Chi torna piu giovane?</h1>
+          <h1>Il tempo e il buco nero</h1>
           <p className="hero-text">
             Parti dalla Terra, scansiona le stazioni della mappa e torna alla Terra. L'app confronta
             quanto tempo passa sulla Terra e quanto tempo passa per il viaggiatore, mostrando l'impatto del buco nero.
@@ -76,7 +77,12 @@ export default function App() {
 
           <div className="station-current">
             <span>Stazione attuale</span>
-            <strong>{result.currentStation?.name ?? 'Nessuna stazione scansionata'}</strong>
+            <div className="station-title-row">
+              <strong>{result.currentStation?.name ?? 'Nessuna stazione scansionata'}</strong>
+              {currentStationDistance !== undefined && (
+                <em>{formatDistance(currentStationDistance)} dalla Terra</em>
+              )}
+            </div>
           </div>
 
           <div className="gauge-card">
@@ -114,7 +120,7 @@ export default function App() {
                 key={station.id}
                 type="button"
                 className={`map-node ${station.kind} ${routeIds.includes(station.id) ? 'visited' : ''}`}
-                style={{ left: `${station.x * 9}%`, top: `${(3 - station.y) * 13}%` }}
+                style={{ left: `${7 + station.x * 7.8}%`, top: `${8 + (3 - station.y) * 11.5}%` }}
                 onClick={() => addStation(station.id)}
                 title={station.description}
               >
@@ -122,7 +128,7 @@ export default function App() {
               </button>
             ))}
           </div>
-          <p className="hint">Per questa prima versione, cliccare una stazione equivale a scansionare il suo QR.</p>
+          <p className="hint">Mappa in scala logaritmica semplificata. La distanza cosmica e la somma progressiva dei tratti percorsi. Cliccare una stazione equivale a scansionare il suo QR.</p>
         </div>
       </section>
 

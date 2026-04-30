@@ -1,6 +1,6 @@
 {
-  "name": "Black Hole Time App",
-  "short_name": "Black Hole",
+  "name": "Il tempo e il buco nero",
+  "short_name": "Buco Nero",
   "description": "Educational dashboard about time near a black hole.",
   "start_url": "/",
   "display": "standalone",
