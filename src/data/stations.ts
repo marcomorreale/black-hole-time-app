@@ -9,6 +9,8 @@ export type Station = {
   y: number;
   distanceFromEarthLightYears?: number;
   schwarzschildDistance?: number;
+  fieldLabel?: string;
+  massLogSize: number;
   description: string;
 };
 
@@ -21,6 +23,7 @@ export const stations: Station[] = [
     x: 0,
     y: 0,
     distanceFromEarthLightYears: 0,
+    massLogSize: 26,
     description: 'Punto di partenza e ritorno della missione.'
   },
   {
@@ -31,6 +34,7 @@ export const stations: Station[] = [
     x: 1,
     y: 2,
     distanceFromEarthLightYears: 0.0000000406,
+    massLogSize: 18,
     description: 'Il nostro satellite naturale. Su questa scala l effetto relativistico e quasi nullo.'
   },
   {
@@ -41,6 +45,7 @@ export const stations: Station[] = [
     x: 3.2,
     y: 0,
     distanceFromEarthLightYears: 0.000623,
+    massLogSize: 19,
     description: 'Destinazione ai confini del Sistema Solare.'
   },
   {
@@ -51,6 +56,7 @@ export const stations: Station[] = [
     x: 6.2,
     y: 1,
     distanceFromEarthLightYears: 4.25,
+    massLogSize: 44,
     description: 'La stella piu vicina al Sole. E la destinazione principale del viaggio interstellare.'
   },
   {
@@ -61,51 +67,60 @@ export const stations: Station[] = [
     x: 10,
     y: 3,
     distanceFromEarthLightYears: 26000,
+    massLogSize: 64,
     description: 'Buco nero supermassiccio reale al centro della Via Lattea. Troppo lontano per la missione.'
   },
   {
-    id: 'einstein-beacon',
-    name: 'Faro Einstein',
-    shortName: 'Faro',
+    id: 'station-a',
+    name: 'Stazione A',
+    shortName: 'A',
     kind: 'black-hole-zone',
     x: 6.6,
     y: 0.5,
     distanceFromEarthLightYears: 4.0,
     schwarzschildDistance: 10,
-    description: 'Ingresso nella regione del buco nero didattico. Campo gravitazionale debole.'
+    fieldLabel: 'Campo debole',
+    massLogSize: 16,
+    description: 'Punto di passaggio nel campo debole del buco nero didattico.'
   },
   {
-    id: 'accretion-disk',
-    name: 'Disco di accrescimento',
-    shortName: 'Disco',
+    id: 'station-b',
+    name: 'Stazione B',
+    shortName: 'B',
     kind: 'black-hole-zone',
     x: 7.0,
     y: 0,
     distanceFromEarthLightYears: 4.2,
     schwarzschildDistance: 2,
-    description: 'Zona di campo gravitazionale forte.'
+    fieldLabel: 'Campo forte',
+    massLogSize: 18,
+    description: 'Punto di passaggio nel campo forte del buco nero didattico.'
   },
   {
-    id: 'horizon-margin',
-    name: 'Margine dell orizzonte',
-    shortName: 'Margine',
+    id: 'station-c',
+    name: 'Stazione C',
+    shortName: 'C',
     kind: 'black-hole-zone',
     x: 7.35,
     y: -0.6,
     distanceFromEarthLightYears: 4.25,
     schwarzschildDistance: 1.5,
-    description: 'Zona critica vicino all orizzonte degli eventi.'
+    fieldLabel: 'Zona critica',
+    massLogSize: 20,
+    description: 'Punto di passaggio nella zona critica vicino all orizzonte degli eventi.'
   },
   {
-    id: 'near-horizon',
-    name: 'Quasi orizzonte',
-    shortName: 'Quasi orizzonte',
+    id: 'station-d',
+    name: 'Stazione D',
+    shortName: 'D',
     kind: 'black-hole-zone',
     x: 7.7,
     y: -1.2,
     distanceFromEarthLightYears: 4.3,
     schwarzschildDistance: 1.2,
-    description: 'Effetto gravitazionale estremo. Da usare nella fase laboratorio.'
+    fieldLabel: 'Quasi orizzonte',
+    massLogSize: 22,
+    description: 'Punto di passaggio vicino al quasi orizzonte.'
   },
   {
     id: 'teaching-black-hole',
@@ -116,6 +131,7 @@ export const stations: Station[] = [
     y: -1.8,
     distanceFromEarthLightYears: 4.31,
     schwarzschildDistance: 1,
+    massLogSize: 72,
     description: 'Oggetto simulato usato per visualizzare l effetto estremo della gravita sul tempo.'
   }
 ];

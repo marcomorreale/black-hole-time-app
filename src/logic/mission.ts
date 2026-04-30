@@ -121,19 +121,29 @@ export function getSuggestedRoutes(): Array<{ title: string; route: string[]; no
       note: 'Serve per misurare la differenza causata dalla sola velocita a 0,5c.'
     },
     {
-      title: 'Laboratorio buco nero: margine diretto',
-      route: ['earth', 'horizon-margin', 'earth'],
-      note: 'Mostra subito l effetto del buco nero didattico.'
+      title: 'Campo debole',
+      route: ['earth', 'station-a', 'earth'],
+      note: 'Passaggio nella Stazione A: campo debole, 10 Rs.'
     },
     {
-      title: 'Buco nero forte: disco di accrescimento',
-      route: ['earth', 'proxima', 'accretion-disk', 'earth'],
-      note: 'Evidenzia un effetto forte ma ancora gestibile.'
+      title: 'Campo forte',
+      route: ['earth', 'station-b', 'earth'],
+      note: 'Passaggio nella Stazione B: campo forte, 2 Rs.'
     },
     {
-      title: 'Zona critica: margine dell orizzonte',
-      route: ['earth', 'proxima', 'horizon-margin', 'earth'],
-      note: 'La demo principale per mostrare chiaramente l impatto del buco nero.'
+      title: 'Zona critica',
+      route: ['earth', 'station-c', 'earth'],
+      note: 'Passaggio nella Stazione C: zona critica, 1,5 Rs.'
+    },
+    {
+      title: 'Quasi orizzonte',
+      route: ['earth', 'station-d', 'earth'],
+      note: 'Passaggio nella Stazione D: effetto estremo, 1,2 Rs.'
+    },
+    {
+      title: 'Viaggio interstellare + buco nero',
+      route: ['earth', 'proxima', 'station-c', 'earth'],
+      note: 'Confronta Proxima con un passaggio nella zona critica del buco nero.'
     }
   ];
 }

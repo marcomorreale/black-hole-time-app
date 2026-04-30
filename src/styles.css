@@ -433,3 +433,165 @@ input {
   .map-area { min-height: 460px !important; }
   .map-node { min-width: 58px; font-size: 0.72rem; padding: 8px 9px; }
 }
+
+
+/* BLACK_HOLE_SECTORS_UI */
+.dashboard-grid { grid-template-columns: 1fr !important; }
+.dashboard-card, .map-card { width: 100%; }
+.map-area { width: 100%; min-height: 560px !important; overflow: hidden; }
+.map-node { white-space: nowrap; z-index: 4; }
+.station-title-row { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.station-title-row em { color: #7dd3fc; font-style: normal; font-size: 0.95rem; font-weight: 700; }
+.black-hole-sector {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px dashed rgba(251, 146, 60, 0.42);
+  pointer-events: none;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  color: #fed7aa;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding-top: 10px;
+  background: radial-gradient(circle, rgba(249, 115, 22, 0.04), rgba(249, 115, 22, 0.015), transparent 70%);
+  z-index: 1;
+}
+.black-hole-sector span {
+  background: rgba(2, 6, 23, 0.72);
+  border: 1px solid rgba(251, 146, 60, 0.2);
+  border-radius: 999px;
+  padding: 4px 8px;
+}
+.field-weak { width: 330px; height: 330px; left: 60%; top: 34%; }
+.field-strong { width: 245px; height: 245px; left: 65%; top: 42%; }
+.field-critical { width: 165px; height: 165px; left: 70%; top: 50%; }
+.field-horizon { width: 96px; height: 96px; left: 74%; top: 58%; }
+.map-node.black-hole { z-index: 5; }
+@media (max-width: 520px) {
+  .map-area { min-height: 460px !important; }
+  .map-node { min-width: 58px; font-size: 0.72rem; padding: 8px 9px; }
+  .black-hole-sector { font-size: 0.66rem; }
+  .field-weak { width: 240px; height: 240px; left: 50%; top: 38%; }
+  .field-strong { width: 180px; height: 180px; left: 58%; top: 47%; }
+  .field-critical { width: 122px; height: 122px; left: 66%; top: 56%; }
+  .field-horizon { width: 76px; height: 76px; left: 72%; top: 64%; }
+}
+
+
+/* PLANETARY_MAP_UI */
+.black-hole-field-center {
+  position: absolute;
+  left: calc(7% + 8.1 * 7.8%);
+  top: calc(8% + (3 + 1.8) * 11.5%);
+  width: 0;
+  height: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.black-hole-sector {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 1px dashed rgba(251, 146, 60, 0.46);
+  pointer-events: none;
+  display: block;
+  color: #fed7aa;
+  font-size: 0.78rem;
+  font-weight: 800;
+  background: radial-gradient(circle, rgba(249, 115, 22, 0.045), rgba(249, 115, 22, 0.015), transparent 68%);
+}
+
+.black-hole-sector span {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+  background: rgba(2, 6, 23, 0.78);
+  border: 1px solid rgba(251, 146, 60, 0.24);
+  border-radius: 999px;
+  padding: 4px 8px;
+}
+
+.field-weak { width: 360px; height: 360px; }
+.field-strong { width: 265px; height: 265px; }
+.field-critical { width: 180px; height: 180px; }
+.field-horizon { width: 105px; height: 105px; }
+
+.map-node {
+  min-width: 0 !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.map-node .planet-dot {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: block;
+  background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.9), rgba(125,211,252,.45) 22%, rgba(14,116,144,.95) 65%);
+}
+
+.map-node.earth .planet-dot {
+  background: radial-gradient(circle at 35% 30%, #e0f2fe, #2563eb 50%, #14532d 76%);
+}
+
+.map-node.real-destination .planet-dot {
+  background: radial-gradient(circle at 35% 30%, #f8fafc, #38bdf8 36%, #0e7490 78%);
+}
+
+.map-node.info .planet-dot {
+  background: radial-gradient(circle at 35% 30%, #fef3c7, #a855f7 42%, #3b0764 78%);
+}
+
+.map-node.black-hole-zone .planet-dot {
+  background: radial-gradient(circle at 35% 30%, #fed7aa, #fb923c 38%, #7c2d12 78%);
+}
+
+.map-node.black-hole .planet-dot {
+  background: radial-gradient(circle at 35% 30%, #64748b, #020617 45%, #000 76%);
+  box-shadow: 0 0 0 6px rgba(249,115,22,.16), 0 0 32px rgba(249,115,22,.45);
+}
+
+.map-node.visited .planet-dot {
+  outline: 3px solid rgba(250, 204, 21, 0.86);
+  outline-offset: 3px;
+}
+
+.map-node .planet-label {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 8px);
+  transform: translateX(-50%);
+  white-space: nowrap;
+  color: #e5eefc;
+  background: rgba(2, 6, 23, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 999px;
+  padding: 3px 7px;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.map-node.black-hole .planet-label,
+.map-node.info .planet-label {
+  top: auto;
+  bottom: calc(100% + 8px);
+}
+
+@media (max-width: 520px) {
+  .field-weak { width: 260px; height: 260px; }
+  .field-strong { width: 195px; height: 195px; }
+  .field-critical { width: 135px; height: 135px; }
+  .field-horizon { width: 82px; height: 82px; }
+  .black-hole-sector { font-size: 0.64rem; }
+  .map-node .planet-label { font-size: 0.66rem; padding: 2px 6px; }
+}

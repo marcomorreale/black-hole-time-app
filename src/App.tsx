@@ -115,20 +115,27 @@ export default function App() {
             <h2>Mappa e stazioni</h2>
           </div>
           <div className="map-area" aria-label="Mappa 2D delle stazioni">
+            <div className="black-hole-field-center" aria-hidden="true">
+              <div className="black-hole-sector field-weak"><span>Campo debole</span></div>
+              <div className="black-hole-sector field-strong"><span>Campo forte</span></div>
+              <div className="black-hole-sector field-critical"><span>Zona critica</span></div>
+              <div className="black-hole-sector field-horizon"><span>Quasi orizzonte</span></div>
+            </div>
             {stations.map((station) => (
               <button
                 key={station.id}
                 type="button"
                 className={`map-node ${station.kind} ${routeIds.includes(station.id) ? 'visited' : ''}`}
-                style={{ left: `${7 + station.x * 7.8}%`, top: `${8 + (3 - station.y) * 11.5}%` }}
+                style={{ left: `${7 + station.x * 7.8}%`, top: `${8 + (3 - station.y) * 11.5}%`, width: `${station.massLogSize}px`, height: `${station.massLogSize}px` }}
                 onClick={() => addStation(station.id)}
                 title={station.description}
               >
-                <span>{station.shortName}</span>
+                <span className="planet-dot" aria-hidden="true" />
+                <span className="planet-label">{station.shortName}</span>
               </button>
             ))}
           </div>
-          <p className="hint">Mappa in scala logaritmica semplificata. La distanza cosmica e la somma progressiva dei tratti percorsi. Cliccare una stazione equivale a scansionare il suo QR.</p>
+          <p className="hint">Mappa in scala logaritmica semplificata. Le lettere A, B, C, D sono stazioni di passaggio dentro i settori del campo gravitazionale del buco nero. Cliccare una stazione equivale a scansionare il suo QR.</p>
         </div>
       </section>
 
