@@ -1,7 +1,7 @@
 import { RotateCcw, Rocket, ScanLine, Sparkles } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { stations } from './data/stations';
-import { calculateMission, getSuggestedRoutes, RouteVisit, STAY_YEARS_PER_REAL_SECOND } from './logic/mission';
+import { calculateMission, getSuggestedRoutes, RouteVisit, STAY_SETUP_SECONDS, STAY_YEARS_PER_REAL_SECOND } from './logic/mission';
 import { FIXED_BETA, formatDistance, formatYears } from './logic/relativity';
 import QrScanner from './components/QrScanner';
 
@@ -115,6 +115,7 @@ export default function App() {
             <Metric label="Velocita media" value="0,5c" />
             <Metric label="Fattore totale" value={`${result.totalFactor.toLocaleString('it-IT', { maximumFractionDigits: 3 })}x`} />
             <Metric label="Scala permanenza" value={`1 sec = ${STAY_YEARS_PER_REAL_SECOND} anno Terra`} />
+            <Metric label="Tempo setup viaggio" value={`${STAY_SETUP_SECONDS} sec non conteggiati`} />
             <Metric label="Permanenza attuale" value={`${result.activeStayRealSeconds.toLocaleString('it-IT', { maximumFractionDigits: 1 })} sec = ${formatYears(result.activeStayEarthYears)}`} />
             <Metric label="Tempo sulla Terra" value={formatYears(result.earthElapsedYears)} />
             <Metric label="Tempo per te" value={formatYears(result.travelerElapsedYears)} />
@@ -130,7 +131,7 @@ export default function App() {
             <div className="map-time-clock">
               <span>Sosta nella stazione corrente</span>
               <strong>{result.activeStayRealSeconds.toLocaleString('it-IT', { maximumFractionDigits: 1 })} sec</strong>
-              <small>{result.currentStation?.id === 'earth' ? 'cronometro fermo' : `${formatYears(result.activeStayEarthYears)} simulati`}</small>
+              <small>{result.currentStation?.id === 'earth' ? 'cronometro fermo' : result.activeStayRealSeconds === 0 ? `setup viaggio: ${STAY_SETUP_SECONDS}s` : `${formatYears(result.activeStayEarthYears)} simulati`}</small>
             </div>
             <div className="black-hole-field-center" aria-hidden="true">
               <div className="black-hole-sector field-weak"><span>Campo debole</span></div>

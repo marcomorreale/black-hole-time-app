@@ -8,6 +8,7 @@ import {
 } from './relativity';
 
 export const STAY_YEARS_PER_REAL_SECOND = 1;
+export const STAY_SETUP_SECONDS = 5;
 
 export type RouteVisit = {
   stationId: string;
@@ -143,7 +144,8 @@ function getStaySegments(visits: RouteVisit[]): Array<{ earthYears: number; trav
     const station = stationById.get(visits[index].stationId);
     if (!station) continue;
     if (station.id === 'earth') continue;
-    const realSeconds = Math.max(0, (visits[index + 1].arrivedAtMs - visits[index].arrivedAtMs) / 1000);
+    const elapsedSeconds = Math.max(0, (visits[index + 1].arrivedAtMs - visits[index].arrivedAtMs) / 1000);
+    const realSeconds = Math.max(0, elapsedSeconds - STAY_SETUP_SECONDS);
     const earthYears = realSeconds * STAY_YEARS_PER_REAL_SECOND;
     const gravityFactor = getGravityFactor(station.schwarzschildDistance);
     const travelerYears = earthYears * gravityFactor;
@@ -157,7 +159,8 @@ function getActiveStayRealSeconds(visits: RouteVisit[], nowMs: number): number {
   if (!lastVisit) return 0;
   if (lastVisit.stationId === 'earth') return 0;
 
-  return Math.max(0, (nowMs - lastVisit.arrivedAtMs) / 1000);
+  const elapsedSeconds = Math.max(0, (nowMs - lastVisit.arrivedAtMs) / 1000);
+  return Math.max(0, elapsedSeconds - STAY_SETUP_SECONDS);
 }
 
 export function getPhysicalDistanceMeters(route: Station[]): number {
