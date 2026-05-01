@@ -1,4 +1,4 @@
-import { Camera, Keyboard, Square } from 'lucide-react';
+import { Camera, CheckCircle2, Keyboard, Square, XCircle } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { stations } from '../data/stations';
 
@@ -15,6 +15,7 @@ export default function QrScanner({ onScan }: QrScannerProps) {
   const [isScanning, setIsScanning] = useState(false);
   const [status, setStatus] = useState('Scanner pronto. Puoi usare la fotocamera o inserire il codice manualmente.');
   const [manualCode, setManualCode] = useState('');
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; title: string; message: string } | null>(null);
 
   useEffect(() => stopScanner, []);
 
@@ -22,11 +23,22 @@ export default function QrScanner({ onScan }: QrScannerProps) {
     const stationId = parseStationId(text);
     if (!stationId || !stationIds.has(stationId)) {
       setStatus('QR letto, ma non corrisponde a una stazione valida.');
+      setFeedback({
+        type: 'error',
+        title: 'QR non valido',
+        message: 'Questo codice non corrisponde a una stazione della mappa.'
+      });
       return;
     }
 
+    const station = stations.find((item) => item.id === stationId);
     onScan(stationId);
-    setStatus('Stazione acquisita: ' + stationId);
+    setFeedback({
+      type: 'success',
+      title: 'Stazione acquisita',
+      message: station ? `${station.name} - ${station.distanceFromEarthLightYears ?? 0} anni luce dalla Terra` : stationId
+    });
+    setStatus('Stazione acquisita: ' + (station?.name ?? stationId));
     setManualCode('');
     stopScanner();
   };
@@ -36,6 +48,11 @@ export default function QrScanner({ onScan }: QrScannerProps) {
       const BarcodeDetectorCtor = (window as any).BarcodeDetector;
       if (!BarcodeDetectorCtor) {
         setStatus('Questo browser non supporta la lettura QR nativa. Usa Chrome Android oppure il codice manuale.');
+        setFeedback({
+          type: 'error',
+          title: 'Scanner non disponibile',
+          message: 'Usa Chrome Android oppure inserisci il codice manualmente.'
+        });
         return;
       }
 
@@ -72,6 +89,11 @@ export default function QrScanner({ onScan }: QrScannerProps) {
     } catch (error) {
       console.error(error);
       setStatus('Impossibile avviare la fotocamera. Controlla i permessi del browser.');
+      setFeedback({
+        type: 'error',
+        title: 'Fotocamera non disponibile',
+        message: 'Controlla i permessi del browser e riprova.'
+      });
       stopScanner();
     }
   };
@@ -122,6 +144,19 @@ export default function QrScanner({ onScan }: QrScannerProps) {
 
       <video ref={videoRef} className={isScanning ? 'qr-video active' : 'qr-video'} muted playsInline />
       <p className="qr-status">{status}</p>
+
+      {feedback && (
+        <div className={`scan-feedback-popup ${feedback.type}`} role="status">
+          <div className="scan-feedback-icon">
+            {feedback.type === 'success' ? <CheckCircle2 size={30} /> : <XCircle size={30} />}
+          </div>
+          <div>
+            <strong>{feedback.title}</strong>
+            <span>{feedback.message}</span>
+          </div>
+          <button type="button" onClick={() => setFeedback(null)} aria-label="Chiudi popup">×</button>
+        </div>
+      )}
     </section>
   );
 }
