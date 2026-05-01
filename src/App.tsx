@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { stations } from './data/stations';
 import { calculateMission, getSuggestedRoutes, RouteVisit, STAY_YEARS_PER_REAL_SECOND } from './logic/mission';
 import { FIXED_BETA, formatDistance, formatYears } from './logic/relativity';
+import QrScanner from './components/QrScanner';
 
 const DEFAULT_AGE = 13;
 
@@ -74,6 +75,8 @@ export default function App() {
           Ricomincia
         </button>
       </section>
+
+      <QrScanner onScan={addStation} />
 
       <section className="dashboard-grid">
         <div className="panel dashboard-card">
