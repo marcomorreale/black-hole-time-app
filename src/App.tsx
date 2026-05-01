@@ -1,5 +1,5 @@
 import { RotateCcw, Rocket, ScanLine, Sparkles } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { stations } from './data/stations';
 import { calculateMission, getSuggestedRoutes, RouteVisit, STAY_SETUP_SECONDS, STAY_YEARS_PER_REAL_SECOND } from './logic/mission';
 import { FIXED_BETA, formatDistance, formatYears } from './logic/relativity';
@@ -12,6 +12,8 @@ export default function App() {
   const createInitialRoute = (): RouteVisit[] => [{ stationId: 'earth', arrivedAtMs: Date.now() }];
   const [routeVisits, setRouteVisits] = useState<RouteVisit[]>(createInitialRoute);
   const [nowMs, setNowMs] = useState(Date.now());
+  const completedMissionRef = useRef<HTMLElement | null>(null);
+  const wasCompleteRef = useRef(false);
 
   useEffect(() => {
     const timer = window.setInterval(() => setNowMs(Date.now()), 250);
@@ -20,6 +22,16 @@ export default function App() {
 
   const result = useMemo(() => calculateMission(routeVisits, undefined, nowMs), [routeVisits, nowMs]);
   const suggestedRoutes = useMemo(() => getSuggestedRoutes(), []);
+
+  useEffect(() => {
+    if (result.isComplete && !wasCompleteRef.current) {
+      window.setTimeout(() => {
+        completedMissionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 150);
+    }
+
+    wasCompleteRef.current = result.isComplete;
+  }, [result.isComplete]);
 
   const addStation = (stationId: string) => {
     setRouteVisits((current) => [...current, { stationId, arrivedAtMs: Date.now() }]);
@@ -183,7 +195,7 @@ export default function App() {
       </section>
 
       {result.isComplete && (
-        <section className="panel result-card">
+        <section ref={completedMissionRef} className="panel result-card">
           <h2>Missione completata</h2>
           <div className="result-main">
             <div>
